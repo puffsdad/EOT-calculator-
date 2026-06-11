@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>2nd Part EOT Payment</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --ink: #0f1923;
+    --ink-mid: #3a4a5a;
+    --ink-light: #7a8fa3;
+    --rule: #d0dae3;
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --accent: #c0392b;
+    --accent-light: #fdf2f1;
+    --green: #1a7a4a;
+    --green-light: #f0faf4;
+    --amber: #b8860b;
+    --amber-light: #fefbe6;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: white;
+    padding: 20px 20px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--ink-light);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .header-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--ink);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 0 12px 0;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 4px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-light);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab.active {
+    color: white;
+    border-bottom-color: var(--accent);
+  }
+
+  /* PANELS */
+  .panel { display: none; padding: 20px; }
+  .panel.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--rule);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .icon-red { background: var(--accent-light); }
+  .icon-green { background: var(--green-light); }
+  .icon-amber { background: var(--amber-light); }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .card-subtitle {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-top: 1px;
+  }
+  .card-body { padding: 16px; }
+
+  /* FORM ELEMENTS */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--rule);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--ink);
+    background: white;
+  }
+  .field .hint {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-top: 5px;
+  }
+  .prefix-wrap { position: relative; }
+  .prefix-wrap .prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--ink-mid);
+    pointer-events: none;
+  }
+  .prefix-wrap input { padding-left: 26px; }
+
+  .suffix-wrap { position: relative; }
+  .suffix-wrap .suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-mid);
+    pointer-events: none;
+  }
+
+  /* RATE PERIODS */
+  .rate-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .rate-row:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .rate-row label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-light);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .rate-row input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1.5px solid var(--rule);
+    border-radius: 7px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg);
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .rate-row input:focus { border-color: var(--ink); background: white; }
+  .rate-row .rate-display {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    margin-top: 4px;
+  }
+  .delete-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    background: var(--accent-light);
+    border: none;
+    color: var(--accent);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+
+  /* PAYMENT ROWS */
+  .payment-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .payment-row:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .payment-row label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-light);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .payment-row input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1.5px solid var(--rule);
+    border-radius: 7px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg);
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .payment-row input:focus { border-color: var(--ink); background: white; }
+
+  /* BUTTONS */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 13px;
+    border-radius: 9px;
+    border: none;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn-primary { background: var(--ink); color: white; }
+  .btn-secondary {
+    background: var(--bg);
+    color: var(--ink-mid);
+    border: 1.5px solid var(--rule);
+    font-weight: 500;
+    font-size: 13px;
+  }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-sm {
+    padding: 9px 14px;
+    font-size: 13px;
+    width: auto;
+    border-radius: 7px;
+  }
+
+  /* SUMMARY NUMBERS */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .summary-cell {
+    background: var(--surface);
+    padding: 14px 12px;
+  }
+  .summary-cell.full-width {
+    grid-column: 1 / -1;
+    background: var(--ink);
+    color: white;
+  }
+  .summary-cell.accent-bg {
+    grid-column: 1 / -1;
+    background: var(--accent);
+    color: white;
+  }
+  .summary-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-light);
+    margin-bottom: 5px;
+  }
+  .summary-cell.full-width .summary-label,
+  .summary-cell.accent-bg .summary-label { color: rgba(255,255,255,0.6); }
+  .summary-value {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .summary-cell.full-width .summary-value,
+  .summary-cell.accent-bg .summary-value { color: white; font-size: 26px; }
+  .summary-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-top: 2px;
+  }
+  .summary-cell.full-width .summary-sub,
+  .summary-cell.accent-bg .summary-sub { color: rgba(255,255,255,0.65); }
+
+  /* BREAKDOWN TABLE */
+  .breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .breakdown-table th {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-light);
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--rule);
+  }
+  .breakdown-table th:last-child { text-align: right; }
+  .breakdown-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .breakdown-table td:last-child { text-align: right; }
+  .breakdown-table tr:last-child td { border-bottom: none; }
+  .breakdown-table .period-label { color: var(--ink); font-size: 11px; }
+  .breakdown-table .period-dates { color: var(--ink-light); font-size: 10px; margin-top: 2px; }
+  .breakdown-table .rate-badge {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+  }
+  .breakdown-table .amount-col { color: var(--ink); }
+  .breakdown-table .interest-col { color: var(--accent); }
+  .breakdown-table .total-row td {
+    background: var(--ink);
+    color: white;
+    font-weight: 600;
+    border-bottom: none;
+  }
+
+  /* ALERT BOXES */
+  .alert {
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .alert-amber { background: var(--amber-light); color: var(--amber); border: 1px solid #e8d08a; }
+  .alert-red { background: var(--accent-light); color: var(--accent); border: 1px solid #e8b0ab; }
+  .alert-green { background: var(--green-light); color: var(--green); border: 1px solid #a8d8be; }
+
+  /* AS-AT DATE */
+  .as-at-bar {
+    background: var(--surface);
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .as-at-bar label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .as-at-bar input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1.5px solid var(--rule);
+    border-radius: 7px;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--bg);
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  /* SECTION DIVIDER */
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-light);
+    margin-bottom: 10px;
+    margin-top: 20px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* SCROLLABLE TABLE WRAP */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--ink-light);
+    font-size: 13px;
+  }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* SHARE STRIP */
+  .share-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .share-strip .btn { flex: 1; }
+
+  /* COMPOUND NOTE */
+  .compound-note {
+    font-size: 11px;
+    color: var(--ink-light);
+    font-style: italic;
+    text-align: center;
+    margin-top: 8px;
+    font-family: var(--sans);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Loan Calculator</div>
+  <div class="header-title">2nd Part EOT Payment</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('setup')">Setup</button>
+  <button class="tab" onclick="switchTab('rates')">Base Rates</button>
+  <button class="tab" onclick="switchTab('payments')">Payments</button>
+  <button class="tab" onclick="switchTab('summary')">Summary</button>
+  <button class="tab" onclick="switchTab('breakdown')">Breakdown</button>
+</div>
+
+<!-- SETUP PANEL -->
+<div id="panel-setup" class="panel active">
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-red">💷</div>
+      <div>
+        <div class="card-title">Principal Amount</div>
+        <div class="card-subtitle">Original sum owed</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>Principal (£)</label>
+        <div class="prefix-wrap">
+          <span class="prefix">£</span>
+          <input type="number" id="principal" placeholder="0.00" inputmode="decimal" onchange="saveData()" oninput="saveData()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Loan Start Date</label>
+        <input type="date" id="startDate" onchange="saveData(); updateRateRowDates()">
+        <div class="hint">The date from which interest begins accruing</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-amber">📅</div>
+      <div>
+        <div class="card-title">Calculate As At</div>
+        <div class="card-subtitle">Balance owed on a specific date</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>Calculation Date</label>
+        <input type="date" id="calcDate" onchange="saveData()">
+        <div class="hint">Leave blank to use today's date</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-amber">⚙️</div>
+      <div>
+        <div class="card-title">Interest Margin</div>
+        <div class="card-subtitle">Fixed addition above base rate</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>Margin above base (%)</label>
+        <div class="suffix-wrap">
+          <input type="number" id="margin" value="3" step="0.01" inputmode="decimal" onchange="saveData()" oninput="saveData()">
+          <span class="suffix">%</span>
+        </div>
+        <div class="hint">e.g. 3 for "base + 3%"</div>
+      </div>
+      <div class="field">
+        <label>Compounding</label>
+        <select id="compounding" onchange="saveData()">
+          <option value="daily">Daily (most common)</option>
+          <option value="monthly">Monthly</option>
+          <option value="annual">Annual</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-accent" onclick="switchTab('rates')">
+    Next: Set Base Rates →
+  </button>
+</div>
+
+<!-- RATES PANEL -->
+<div id="panel-rates" class="panel">
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-green">📈</div>
+      <div>
+        <div class="card-title">Bank of England Base Rates</div>
+        <div class="card-subtitle">Enter each rate change over the period</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-amber">
+        Enter the date each base rate came into effect, and the rate. Periods run from one date to the next. The last entry runs to the calculation date.
+      </div>
+      <div id="rateRows"></div>
+      <button class="btn btn-secondary" style="margin-top:12px" onclick="addRateRow()">
+        + Add Rate Period
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-amber">🏦</div>
+      <div>
+        <div class="card-title">Historical BoE Rates</div>
+        <div class="card-subtitle">Quick-fill common periods</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-green" style="margin-bottom:12px">
+        These are approximate BoE base rates. Tap to load them as a starting point, then adjust as needed.
+      </div>
+      <button class="btn btn-secondary" onclick="loadHistoricalRates()">
+        Load 2021–2025 BoE Rates
+      </button>
+    </div>
+  </div>
+
+  <button class="btn btn-accent" onclick="calculate(); switchTab('summary')">
+    Calculate →
+  </button>
+</div>
+
+<!-- PAYMENTS PANEL -->
+<div id="panel-payments" class="panel">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-green">💳</div>
+      <div>
+        <div class="card-title">Payments Made</div>
+        <div class="card-subtitle">Amounts paid toward the loan</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-amber">
+        Each payment reduces the outstanding balance on the date it was made. Interest continues to accrue on the reduced balance.
+      </div>
+      <div id="paymentRows"></div>
+      <button class="btn btn-secondary" style="margin-top:12px" onclick="addPaymentRow()">
+        + Add Payment
+      </button>
+    </div>
+  </div>
+
+  <div id="paymentsTotalCard" style="display:none" class="card">
+    <div class="card-header">
+      <div class="card-icon icon-green">✅</div>
+      <div>
+        <div class="card-title">Payments Summary</div>
+        <div class="card-subtitle">Total paid to date</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="paymentsTotalContent"></div>
+    </div>
+  </div>
+
+  <button class="btn btn-accent" onclick="calculate(); switchTab('summary')">
+    Calculate →
+  </button>
+</div>
+
+<!-- SUMMARY PANEL -->
+<div id="panel-summary" class="panel">
+  <div id="summaryContent">
+    <div class="empty-state">
+      <div class="empty-icon">🧮</div>
+      <div>Configure setup and rates,<br>then tap Calculate</div>
+    </div>
+  </div>
+</div>
+
+<!-- BREAKDOWN PANEL -->
+<div id="panel-breakdown" class="panel">
+  <div id="breakdownContent">
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div>Run a calculation to see<br>the period-by-period breakdown</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let rateRows = [];
+let paymentRows = [];
+let calcResult = null;
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.textContent.trim().toLowerCase().startsWith(name.substring(0,4))) t.classList.add('active');
+  });
+  // Fix tab detection by index
+  const tabs = document.querySelectorAll('.tab');
+  const panels = ['setup','rates','payments','summary','breakdown'];
+  tabs.forEach((t,i) => {
+    t.classList.toggle('active', panels[i] === name);
+  });
+}
+
+// ─── RATE ROWS ───────────────────────────────────────────────────────────────
+function addRateRow(date='', rate='') {
+  const id = Date.now() + Math.random();
+  rateRows.push({ id, date, rate });
+  renderRateRows();
+  saveData();
+}
+
+function removeRateRow(id) {
+  rateRows = rateRows.filter(r => r.id !== id);
+  renderRateRows();
+  saveData();
+}
+
+function renderRateRows() {
+  const container = document.getElementById('rateRows');
+  const margin = parseFloat(document.getElementById('margin').value) || 3;
+
+  if (rateRows.length === 0) {
+    container.innerHTML = '<div style="color:var(--ink-light);font-size:13px;text-align:center;padding:16px 0">No rate periods added yet</div>';
+    return;
+  }
+
+  container.innerHTML = rateRows.map((row, idx) => {
+    const totalRate = (parseFloat(row.rate) || 0) + margin;
+    const rateDisplay = row.rate !== '' ? `Total: ${totalRate.toFixed(2)}%` : '';
+    return `
+      <div class="rate-row">
+        <div>
+          <label>Effective From</label>
+          <input type="date" value="${row.date}" 
+            oninput="updateRate(${row.id}, 'date', this.value)"
+            onchange="updateRate(${row.id}, 'date', this.value)">
+        </div>
+        <div>
+          <label>Base Rate (%)</label>
+          <div class="suffix-wrap" style="position:relative">
+            <input type="number" value="${row.rate}" step="0.01" placeholder="0.00" inputmode="decimal"
+              oninput="updateRate(${row.id}, 'rate', this.value)"
+              onchange="updateRate(${row.id}, 'rate', this.value)"
+              style="padding-right:28px">
+            <span class="suffix">%</span>
+          </div>
+          ${rateDisplay ? `<div class="rate-display">${rateDisplay}</div>` : ''}
+        </div>
+        <button class="delete-btn" onclick="removeRateRow(${row.id})">×</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateRate(id, field, value) {
+  const row = rateRows.find(r => r.id === id);
+  if (row) row[field] = value;
+  // Only re-render on date changes (to update the total rate display); on amount input just save
+  if (field === 'date') renderRateRows();
+  else {
+    // Update just the rate display label without full re-render
+    const margin = parseFloat(document.getElementById('margin').value) || 3;
+    const totalRate = (parseFloat(value) || 0) + margin;
+    const allRows = document.querySelectorAll('.rate-row');
+    const idx = rateRows.findIndex(r => r.id === id);
+    if (allRows[idx]) {
+      const display = allRows[idx].querySelector('.rate-display');
+      if (display) display.textContent = value !== '' ? `Total: ${totalRate.toFixed(2)}%` : '';
+    }
+  }
+  saveData();
+}
+
+function updateRateRowDates() { renderRateRows(); }
+
+function loadHistoricalRates() {
+  if (rateRows.length > 0) {
+    if (!confirm('This will replace your current rate periods. Continue?')) return;
+  }
+  rateRows = [
+    { id: 1,  date: '2021-01-01', rate: '0.1' },   // 0.10% — pandemic low held
+    { id: 2,  date: '2021-12-16', rate: '0.25' },  // +0.15 — first hike
+    { id: 3,  date: '2022-02-03', rate: '0.5' },   // +0.25
+    { id: 4,  date: '2022-03-17', rate: '0.75' },  // +0.25
+    { id: 5,  date: '2022-05-05', rate: '1.0' },   // +0.25
+    { id: 6,  date: '2022-06-16', rate: '1.25' },  // +0.25
+    { id: 7,  date: '2022-08-04', rate: '1.75' },  // +0.50
+    { id: 8,  date: '2022-09-22', rate: '2.25' },  // +0.50
+    { id: 9,  date: '2022-11-03', rate: '3.0' },   // +0.75
+    { id: 10, date: '2022-12-15', rate: '3.5' },   // +0.50
+    { id: 11, date: '2023-02-02', rate: '4.0' },   // +0.50
+    { id: 12, date: '2023-03-23', rate: '4.25' },  // +0.25
+    { id: 13, date: '2023-05-11', rate: '4.5' },   // +0.25
+    { id: 14, date: '2023-06-22', rate: '5.0' },   // +0.50
+    { id: 15, date: '2023-08-03', rate: '5.25' },  // +0.25 — peak
+    { id: 16, date: '2024-08-01', rate: '5.0' },   // -0.25 — first cut
+    { id: 17, date: '2024-11-07', rate: '4.75' },  // -0.25
+    { id: 18, date: '2025-02-06', rate: '4.5' },   // -0.25
+    { id: 19, date: '2025-05-08', rate: '4.25' },  // -0.25
+    { id: 20, date: '2025-08-07', rate: '4.0' },   // -0.25
+    { id: 21, date: '2025-12-18', rate: '3.75' },  // -0.25 — current rate
+  ];
+  renderRateRows();
+  saveData();
+}
+
+// ─── PAYMENT ROWS ────────────────────────────────────────────────────────────
+function addPaymentRow(date='', amount='') {
+  const id = Date.now() + Math.random();
+  paymentRows.push({ id, date, amount });
+  renderPaymentRows();
+  saveData();
+}
+
+function removePaymentRow(id) {
+  paymentRows = paymentRows.filter(p => p.id !== id);
+  renderPaymentRows();
+  updatePaymentsTotal();
+  saveData();
+}
+
+function updatePayment(id, field, value) {
+  const row = paymentRows.find(p => p.id === id);
+  if (row) row[field] = value;
+  // Don't re-render — just update the total and save, to avoid losing input focus
+  updatePaymentsTotal();
+  saveData();
+}
+
+function renderPaymentRows() {
+  const container = document.getElementById('paymentRows');
+  if (!container) return;
+  if (paymentRows.length === 0) {
+    container.innerHTML = '<div style="color:var(--ink-light);font-size:13px;text-align:center;padding:16px 0">No payments recorded</div>';
+    return;
+  }
+  container.innerHTML = paymentRows.map(row => `
+    <div class="payment-row">
+      <div>
+        <label>Date</label>
+        <input type="date" value="${row.date}"
+          oninput="updatePayment(${row.id}, 'date', this.value)"
+          onchange="updatePayment(${row.id}, 'date', this.value)">
+      </div>
+      <div>
+        <label>Amount (£)</label>
+        <div style="position:relative">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:13px;color:var(--ink-mid);pointer-events:none">£</span>
+          <input type="number" value="${row.amount}" step="0.01" placeholder="0.00" inputmode="decimal"
+            style="padding-left:22px"
+            oninput="updatePayment(${row.id}, 'amount', this.value)"
+            onchange="updatePayment(${row.id}, 'amount', this.value)">
+        </div>
+      </div>
+      <button class="delete-btn" onclick="removePaymentRow(${row.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function updatePaymentsTotal() {
+  const card = document.getElementById('paymentsTotalCard');
+  const content = document.getElementById('paymentsTotalContent');
+  if (!card || !content) return;
+  const valid = paymentRows.filter(p => p.date && p.amount);
+  if (valid.length === 0) { card.style.display = 'none'; return; }
+  const total = valid.reduce((s, p) => s + parseFloat(p.amount), 0);
+  card.style.display = 'block';
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
+      <span style="font-size:13px;color:var(--ink-mid)">${valid.length} payment${valid.length!==1?'s':''}</span>
+      <span style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--green)">£${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
+    </div>
+  `;
+}
+
+// ─── CALCULATION ──────────────────────────────────────────────────────────────
+function calculate() {
+  const principal = parseFloat(document.getElementById('principal').value);
+  const startDateStr = document.getElementById('startDate').value;
+  const calcDateStr = document.getElementById('calcDate').value;
+  const margin = parseFloat(document.getElementById('margin').value) || 3;
+  const compounding = document.getElementById('compounding').value;
+
+  if (!principal || !startDateStr) {
+    renderSummaryError('Please enter a principal amount and start date on the Setup tab.');
+    return;
+  }
+  if (rateRows.length === 0) {
+    renderSummaryError('Please add at least one base rate period on the Base Rates tab.');
+    return;
+  }
+
+  // Parse date strings as LOCAL dates (not UTC) to avoid timezone day-shift
+  function parseLocal(str) {
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  function toLocalDateStr(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth()+1).padStart(2,'0');
+    const d = String(date.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+
+  const startDate = parseLocal(startDateStr);
+  const endDate = calcDateStr ? parseLocal(calcDateStr) : (() => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); })();
+
+  if (endDate <= startDate) {
+    renderSummaryError('Calculation date must be after the start date.');
+    return;
+  }
+
+  // Sort rate rows by date using local parsing
+  const sortedRates = [...rateRows]
+    .filter(r => r.date && r.rate !== '')
+    .sort((a, b) => parseLocal(a.date) - parseLocal(b.date));
+
+  if (sortedRates.length === 0) {
+    renderSummaryError('Please enter valid dates and rates for all rate periods.');
+    return;
+  }
+
+  // Build periods: from startDate to endDate, split by rate changes
+  const periods = [];
+
+  // Get rate applicable at any date (falls back to first rate if startDate is before first entry)
+  function getRateAt(date) {
+    let applicable = null;
+    for (const r of sortedRates) {
+      if (parseLocal(r.date) <= date) applicable = r;
+      else break;
+    }
+    // If start date is before first rate row, use the first available rate
+    if (applicable === null && sortedRates.length > 0) applicable = sortedRates[0];
+    return applicable ? parseFloat(applicable.rate) : null;
+  }
+
+  // Sort and validate payments
+  const sortedPayments = [...paymentRows]
+    .filter(p => p.date && p.amount && parseFloat(p.amount) > 0)
+    .sort((a, b) => parseLocal(a.date) - parseLocal(b.date));
+
+  // Build list of period boundary dates — include rate changes AND payment dates
+  const boundaryStrs = new Set();
+  boundaryStrs.add(toLocalDateStr(startDate));
+  for (const r of sortedRates) {
+    const d = parseLocal(r.date);
+    if (d > startDate && d < endDate) boundaryStrs.add(toLocalDateStr(d));
+  }
+  for (const p of sortedPayments) {
+    const d = parseLocal(p.date);
+    if (d > startDate && d < endDate) boundaryStrs.add(toLocalDateStr(d));
+  }
+  boundaryStrs.add(toLocalDateStr(endDate));
+
+  const uniqueBoundaries = [...boundaryStrs]
+    .sort()
+    .map(s => parseLocal(s));
+
+  let runningBalance = principal;
+  let totalPaymentsMade = 0;
+
+  for (let i = 0; i < uniqueBoundaries.length - 1; i++) {
+    const pStart = uniqueBoundaries[i];
+    const pEnd = uniqueBoundaries[i+1];
+    const baseRate = getRateAt(pStart);
+
+    if (baseRate === null) continue;
+
+    const totalRate = baseRate + margin;
+    const days = Math.round((pEnd - pStart) / (1000 * 60 * 60 * 24));
+
+    let interestAccrued = 0;
+
+    function isLeapYear(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+
+    if (compounding === 'daily') {
+      // Step through calendar years so leap years use /366, others /365
+      let bal = runningBalance;
+      let cursor = new Date(pStart);
+      while (cursor < pEnd) {
+        const nextYearStart = new Date(cursor.getFullYear() + 1, 0, 1);
+        const segEnd = nextYearStart < pEnd ? nextYearStart : pEnd;
+        const segDays = Math.round((segEnd - cursor) / 86400000);
+        const diy = isLeapYear(cursor.getFullYear()) ? 366 : 365;
+        bal = bal * Math.pow(1 + totalRate / 100 / diy, segDays);
+        cursor = segEnd;
+      }
+      interestAccrued = bal - runningBalance;
+
+    } else if (compounding === 'monthly') {
+      // Step through whole calendar months, then handle the remaining stub with daily
+      const monthlyRate = totalRate / 100 / 12;
+      let bal = runningBalance;
+      let cursor = new Date(pStart);
+      while (cursor < pEnd) {
+        const nextMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, cursor.getDate());
+        if (nextMonth <= pEnd) {
+          // Full calendar month
+          bal = bal * (1 + monthlyRate);
+          cursor = nextMonth;
+        } else {
+          // Partial month stub — use daily accrual for the remaining days
+          const stubDays = Math.round((pEnd - cursor) / 86400000);
+          const diy = isLeapYear(cursor.getFullYear()) ? 366 : 365;
+          bal = bal * Math.pow(1 + totalRate / 100 / diy, stubDays);
+          cursor = pEnd;
+        }
+      }
+      interestAccrued = bal - runningBalance;
+
+    } else { // annual
+      // Step through whole calendar years anniversary-to-anniversary, then daily stub
+      const annualRate = totalRate / 100;
+      let bal = runningBalance;
+      let cursor = new Date(pStart);
+      while (cursor < pEnd) {
+        const nextAnniv = new Date(cursor.getFullYear() + 1, cursor.getMonth(), cursor.getDate());
+        if (nextAnniv <= pEnd) {
+          // Full year
+          bal = bal * (1 + annualRate);
+          cursor = nextAnniv;
+        } else {
+          // Partial year stub — use daily accrual for remaining days
+          const stubDays = Math.round((pEnd - cursor) / 86400000);
+          const diy = isLeapYear(cursor.getFullYear()) ? 366 : 365;
+          bal = bal * Math.pow(1 + annualRate / diy, stubDays);
+          cursor = pEnd;
+        }
+      }
+      interestAccrued = bal - runningBalance;
+    }
+
+    // Check if a payment falls on pEnd date (applied at start of next period)
+    const paymentOnEnd = sortedPayments
+      .filter(p => toLocalDateStr(parseLocal(p.date)) === toLocalDateStr(pEnd))
+      .reduce((s, p) => s + parseFloat(p.amount), 0);
+
+    const closingBeforePayment = runningBalance + interestAccrued;
+    const paymentApplied = Math.min(paymentOnEnd, closingBeforePayment);
+    const closingAfterPayment = closingBeforePayment - paymentApplied;
+    totalPaymentsMade += paymentApplied;
+
+    periods.push({
+      start: pStart,
+      end: pEnd,
+      days,
+      baseRate,
+      totalRate,
+      openingBalance: runningBalance,
+      interestAccrued,
+      closingBalance: closingBeforePayment,
+      paymentApplied,
+      closingAfterPayment
+    });
+
+    runningBalance = closingAfterPayment;
+  }
+
+  const totalInterest = runningBalance - principal + totalPaymentsMade;
+  const totalDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+  calcResult = {
+    principal,
+    startDate,
+    endDate,
+    totalInterest,
+    totalOwed: runningBalance,
+    totalPaymentsMade,
+    totalDays,
+    periods,
+    margin,
+    compounding
+  };
+
+  renderSummary(calcResult);
+  renderBreakdown(calcResult);
+}
+
+// ─── RENDER SUMMARY ───────────────────────────────────────────────────────────
+function fmt(n) {
+  return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+function fmtDate(d) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return String(d.getDate()).padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function renderSummaryError(msg) {
+  document.getElementById('summaryContent').innerHTML = `<div class="alert alert-red">${msg}</div>`;
+}
+
+function renderSummary(r) {
+  const interestPct = ((r.totalInterest / r.principal) * 100).toFixed(1);
+  const years = (r.totalDays / 365).toFixed(1);
+  const lastPeriod = r.periods[r.periods.length - 1];
+  const currentRate = lastPeriod ? lastPeriod.totalRate : r.margin;
+
+  // Accrual rate depends on compounding method chosen
+  const today = r.endDate;
+  function isLeap(y) { return (y%4===0&&y%100!==0)||y%400===0; }
+  const diy = isLeap(today.getFullYear()) ? 366 : 365;
+  const dailyAccrual   = r.totalOwed * (currentRate / 100 / diy);
+  const monthlyAccrual = r.totalOwed * (currentRate / 100 / 12);
+  const annualAccrual  = r.totalOwed * (currentRate / 100);
+
+  // Pick the label and value that matches the selected compounding
+  let accrualValue, accrualLabel;
+  if (r.compounding === 'daily') {
+    accrualValue = dailyAccrual;
+    accrualLabel = 'per day';
+  } else if (r.compounding === 'monthly') {
+    accrualValue = monthlyAccrual;
+    accrualLabel = 'per month';
+  } else {
+    accrualValue = annualAccrual;
+    accrualLabel = 'per year';
+  }
+
+  document.getElementById('summaryContent').innerHTML = `
+    <div class="as-at-bar">
+      <label>Calculated As At</label>
+      <span style="font-family:var(--mono);font-size:14px;color:var(--ink)">${fmtDate(r.endDate)}</span>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-cell accent-bg">
+        <div class="summary-label">Total Amount Owed</div>
+        <div class="summary-value">${fmt(r.totalOwed)}</div>
+        <div class="summary-sub">${fmtDate(r.startDate)} → ${fmtDate(r.endDate)}</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Principal</div>
+        <div class="summary-value">${fmt(r.principal)}</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Interest Accrued</div>
+        <div class="summary-value" style="color:var(--accent)">${fmt(r.totalInterest)}</div>
+        <div class="summary-sub">${interestPct}% of principal</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Duration</div>
+        <div class="summary-value">${r.totalDays}</div>
+        <div class="summary-sub">days (${years} yrs)</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Current Rate</div>
+        <div class="summary-value" style="font-size:18px;padding-top:3px">${currentRate.toFixed(2)}%</div>
+        <div class="summary-sub">base + ${r.margin}% margin</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-label">Next Accrual</div>
+        <div class="summary-value" style="font-size:16px;padding-top:3px;color:var(--accent)">${fmt(accrualValue)}</div>
+        <div class="summary-sub">${accrualLabel} · ${r.compounding} compounding</div>
+      </div>
+      ${r.totalPaymentsMade > 0 ? `
+      <div class="summary-cell" style="background:var(--green-light)">
+        <div class="summary-label" style="color:var(--green)">Payments Made</div>
+        <div class="summary-value" style="color:var(--green)">${fmt(r.totalPaymentsMade)}</div>
+        <div class="summary-sub" style="color:var(--green)">credited against balance</div>
+      </div>
+      ` : ''}
+    </div>
+
+    <p class="compound-note">⚠ Compound interest (${r.compounding}) — interest is added to the balance ${r.compounding === 'daily' ? 'every day' : r.compounding === 'monthly' ? 'each month' : 'each year'} and itself earns interest.${r.totalPaymentsMade > 0 ? ' Payments have been applied on the dates they were made.' : ' No payments applied.'}</p>
+
+    <div style="margin-top:16px">
+      <button class="btn btn-primary" onclick="calculate()">
+        🔄 Recalculate
+      </button>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn btn-secondary" onclick="switchTab('breakdown')">
+        View Period Breakdown →
+      </button>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn btn-secondary" onclick="copyResults()">
+        📋 Copy Results to Clipboard
+      </button>
+    </div>
+  `;
+}
+
+// ─── RENDER BREAKDOWN ─────────────────────────────────────────────────────────
+function renderBreakdown(r) {
+  if (!r || r.periods.length === 0) return;
+
+  const rows = r.periods.map(p => `
+    <tr>
+      <td>
+        <div class="period-label">${fmtDate(p.start)}</div>
+        <div class="period-dates">to ${fmtDate(p.end)} · ${p.days}d</div>
+        <div style="margin-top:4px"><span class="rate-badge">${p.totalRate.toFixed(2)}%</span></div>
+      </td>
+      <td class="amount-col">${fmt(p.openingBalance)}</td>
+      <td class="amount-col" style="color:var(--ink-mid)">${fmt(p.interestAccrued / p.days)}</td>
+      <td class="interest-col">${fmt(p.interestAccrued)}</td>
+      <td class="amount-col">${fmt(p.closingBalance)}</td>
+    </tr>
+    ${p.paymentApplied > 0 ? `
+    <tr style="background:var(--green-light)">
+      <td colspan="3" style="color:var(--green);font-size:11px;padding:6px 10px">
+        💳 Payment applied ${fmtDate(p.end)}
+      </td>
+      <td style="color:var(--green);font-family:var(--mono);font-size:11px;text-align:right;padding:6px 10px">−${fmt(p.paymentApplied)}</td>
+      <td style="color:var(--green);font-family:var(--mono);font-size:11px;text-align:right;padding:6px 10px">${fmt(p.closingAfterPayment)}</td>
+    </tr>` : ''}
+  `).join('');
+
+  document.getElementById('breakdownContent').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-red">📋</div>
+        <div>
+          <div class="card-title">Period-by-Period Breakdown</div>
+          <div class="card-subtitle">${r.periods.length} rate period${r.periods.length!==1?'s':''} · ${r.compounding} compounding</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="breakdown-table">
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th>Opening</th>
+              <th>£/day</th>
+              <th>Interest</th>
+              <th>Closing</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr class="total-row">
+              <td colspan="2">Total Interest</td>
+              <td></td>
+              <td>${fmt(r.totalInterest)}</td>
+              <td>${fmt(r.totalOwed)}</td>
+            </tr>
+            ${r.totalPaymentsMade > 0 ? `
+            <tr style="background:var(--green);color:white">
+              <td colspan="3" style="color:white;font-weight:600">Total Payments Made</td>
+              <td style="color:white;font-family:var(--mono);text-align:right;font-weight:600">−${fmt(r.totalPaymentsMade)}</td>
+              <td style="color:white;font-family:var(--mono);text-align:right;font-weight:600">${fmt(r.totalOwed)}</td>
+            </tr>` : ''}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="compound-note" style="margin-top:8px">Closing balance of each period becomes opening balance of next (compound interest)</p>
+  `;
+}
+
+// ─── COPY RESULTS ─────────────────────────────────────────────────────────────
+function copyResults() {
+  if (!calcResult) return;
+  const r = calcResult;
+  let text = `2ND PART EOT PAYMENT — LOAN CALCULATION\n`;
+  text += `${'='.repeat(45)}\n`;
+  text += `As at: ${fmtDate(r.endDate)}\n\n`;
+  text += `Principal:        ${fmt(r.principal)}\n`;
+  text += `Interest accrued: ${fmt(r.totalInterest)}\n`;
+  text += `TOTAL OWED:       ${fmt(r.totalOwed)}\n\n`;
+  text += `Period: ${fmtDate(r.startDate)} to ${fmtDate(r.endDate)} (${r.totalDays} days)\n`;
+  text += `Compounding: ${r.compounding} | Margin: +${r.margin}%\n`;
+  if (r.totalPaymentsMade > 0) text += `Payments made: ${fmt(r.totalPaymentsMade)}\n`;
+  text += '\n';
+  text += `PERIOD BREAKDOWN\n${'-'.repeat(45)}\n`;
+  r.periods.forEach(p => {
+    text += `${fmtDate(p.start)} – ${fmtDate(p.end)} (${p.days}d @ ${p.totalRate.toFixed(2)}%)\n`;
+    text += `  Opening: ${fmt(p.openingBalance)}  Interest: ${fmt(p.interestAccrued)}  Closing: ${fmt(p.closingBalance)}\n`;
+  });
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => alert('Results copied to clipboard'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('Results copied to clipboard');
+  }
+}
+
+// ─── PERSIST TO LOCALSTORAGE ──────────────────────────────────────────────────
+function saveData() {
+  try {
+    const data = {
+      principal: document.getElementById('principal').value,
+      startDate: document.getElementById('startDate').value,
+      calcDate: document.getElementById('calcDate').value,
+      margin: document.getElementById('margin').value,
+      compounding: document.getElementById('compounding').value,
+      rateRows: rateRows,
+      paymentRows: paymentRows
+    };
+    localStorage.setItem('eot_data', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('eot_data');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.principal) document.getElementById('principal').value = data.principal;
+    if (data.startDate) document.getElementById('startDate').value = data.startDate;
+    if (data.calcDate) document.getElementById('calcDate').value = data.calcDate;
+    if (data.margin) document.getElementById('margin').value = data.margin;
+    if (data.compounding) document.getElementById('compounding').value = data.compounding;
+    if (data.rateRows) rateRows = data.rateRows;
+    if (data.paymentRows) paymentRows = data.paymentRows;
+  } catch(e) {}
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadData();
+renderRateRows();
+renderPaymentRows();
+updatePaymentsTotal();
+
+// Set today as default calc date if not set
+if (!document.getElementById('calcDate').value) {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('calcDate').value = today;
+}
+</script>
+</body>
+</html>
